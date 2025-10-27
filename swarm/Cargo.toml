@@ -1,0 +1,4 @@
+[package]
+name = "fcn-swarm"
+edition.workspace = true
+version.workspace = true

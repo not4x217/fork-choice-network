@@ -1,0 +1,12 @@
+[package]
+name = "fcn-common"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+commonware-cryptography = { workspace = true }
+commonware-runtime = { workspace = true }
+
+thiserror = { workspace = true }
+
+prometheus-client = { workspace = true }

@@ -1,0 +1,8 @@
+[package]
+name = "fcn-simulator"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+commonware-cryptography = { workspace = true }
+commonware-runtime = { workspace = true }

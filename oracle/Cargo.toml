@@ -1,0 +1,19 @@
+[package]
+name = "fcn-oracle"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+fcn-common = {workspace = true }
+
+commonware-cryptography = { workspace = true }
+commonware-runtime = { workspace = true }
+commonware-p2p = { workspace = true }
+commonware-broadcast = { workspace = true }
+commonware-macros = { workspace = true }
+commonware-codec = { workspace = true }
+
+rand = { workspace = true }
+governor = { workspace = true }
+futures = { workspace = true }
+bytes = { workspace = true }

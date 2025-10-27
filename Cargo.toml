@@ -1,0 +1,81 @@
+[workspace]
+members = [
+    "common",
+    "oracle",
+    "swarm",
+    "simulator",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+
+[workspace.dependencies]
+# Internal crates
+fcn-common = { version = "0.0.1", path = "common" }
+
+# Commonware dependencies
+commonware-broadcast = { version = "0.0.62" }
+commonware-codec = { version = "0.0.62" }
+commonware-cryptography = { version = "0.0.62" }
+commonware-consensus = { version = "0.0.62" }
+commonware-macros = { version = "0.0.62" }
+commonware-p2p = { version = "0.0.62" }
+commonware-resolver = { version = "0.0.62" }
+commonware-runtime = { version = "0.0.62" }
+commonware-storage = { version = "0.0.62" }
+commonware-stream = { version = "0.0.62" }
+commonware-utils = { version = "0.0.62" }
+
+# Common dependencies
+anyhow = "1.0.99"
+thiserror = "2.0.12"
+bytes = "1.7.1"
+rand = "0.8.5"
+futures = "0.3.31"
+futures-util = "0.3.31"
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
+governor = "0.6.3"
+prometheus-client = "0.22.3"
+clap = { version = "4.5.18", features = ["derive"] }
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.122"
+serde_yaml = "0.9.34"
+tokio = { version = "1.43.0", features = ["full"] }
+rayon = "1.10.0"
+rand_chacha = "0.3.1"
+uuid = "1.15.1"
+
+# Web/API dependencies
+axum = { version = "0.7.9", features = ["ws"] }
+reqwest = { version = "0.11.27", features = ["json"] }
+tokio-tungstenite = { version = "0.24.0", features = ["native-tls"] }
+tower = "0.5.2"
+url = "2.5.4"
+
+[profile.bench]
+# Because we enable overflow checks in "release," we should benchmark with them.
+overflow-checks = true
+
+[profile.dev]
+# Although overflow checks are enabled by default in "dev", we explicitly
+# enable them here for clarity.
+overflow-checks = true
+
+[profile.release]
+# To guard against unexpected behavior in production, we enable overflow checks in
+# "release" although they incur some performance penalty.
+overflow-checks = true
+
+[profile.release-with-debug]
+inherits = "release"
+# Setting debug to true instructs cargo to include debug symbols in the release
+# binary (not to disable optimizations).
+debug = true
+
+[profile.test]
+# Although overflow checks are enabled by default in "test", we explicitly
+# enable them here for clarity.
+overflow-checks = true
