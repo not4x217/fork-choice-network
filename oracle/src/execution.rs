@@ -31,6 +31,7 @@ impl State {
 
 pub struct StateTransitionResult {
     pub processed_nonces: BTreeMap<PublicKey, u64>,
+    pub invalid_txs: Vec<Transaction>,
     pub generated_events: Vec<Event>,
 }
 
@@ -39,62 +40,74 @@ pub fn execute_state_transition(
     txs: Vec<Transaction>
 ) -> StateTransitionResult {
     let mut processed_nonces = BTreeMap::new();
+    let mut invalid_txs = Vec::new();
+    let mut generated_events = Vec::new();
+
     let mut valid_txs = Vec::new();
     for tx in txs {
         // Must be applied in order to ensure blocks with multiple transactions from same
         // account are handled properly.
-        if !prepare_transaction(state, &tx) {
+        let sender = if let Some(account) = prepare_sender_account(state, &tx) {
+            account
+        } else {
+            invalid_txs.push(tx);
             continue;
-        }
+        };
 
-        // Track the next nonce for this public key
+        // Execute transaction
+        if let Some(events) = apply_transaction(state, &tx) {
+            generated_events.extend(events);
+        } else {
+            invalid_txs.push(tx);
+            continue;
+        };
+
+        // Track the next nonce for this public key in case of valid transaction
         processed_nonces.insert(tx.public_key.clone(), tx.nonce.saturating_add(1));
         valid_txs.push(tx);
     }
 
-    let mut generated_events = Vec::<Event>::new();
-    for tx in valid_txs {
-        generated_events.append(&mut apply_transaction(state, &tx));
-    }
-
     StateTransitionResult { 
         processed_nonces,
+        invalid_txs,
         generated_events,
     }
 }
 
-fn prepare_transaction(state: &mut State, tx: &Transaction) -> bool {
+fn prepare_sender_account(state: &mut State, tx: &Transaction) -> Option<BuilderAccount> {
     // Get account
     let mut account = if let Some(account) =
         state.builders.get(&tx.public_key)
     {
         account.clone()
     } else {
-        BuilderAccount::default()
+        return None;
     };
 
     // Ensure nonce is correct
     if account.nonce != tx.nonce {
-        return false;
+        return None;
     }
 
     // Increment nonce
     account.nonce += 1;
-    state.builders.insert(tx.public_key.clone(),account);
+    state.builders.insert(tx.public_key.clone(),account.clone());
 
-    true
+    Some(account)
 }
 
 fn apply_transaction(
     state: &mut State,
     tx: &Transaction
-) -> Vec<Event> {
+) -> Option<Vec<Event>> {
     let mut events = Vec::<Event>::new();
     
     match &tx.instruction {
         Instruction::ProposeBlock(proposal) => {
             if let Ok(()) = state.fork_tree.propose_block(proposal.block_height, proposal.parent_hash, proposal.block_hash) {
                 state.frame_block_proposal_count += 1;
+            } else {
+                return None
             }
         }
     }
@@ -115,5 +128,5 @@ fn apply_transaction(
         }
     }
 
-    events
+    Some(events)
 }
